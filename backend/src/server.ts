@@ -1,11 +1,14 @@
 import fastify from "fastify";
 import fastifyCors from "@fastify/cors";
-
-const app = fastify();
+import { serializerCompiler, validatorCompiler, jsonSchemaTransform, ZodTypeProvider } from 'fastify-type-provider-zod'
+const app = fastify().withTypeProvider<ZodTypeProvider>();
 
 app.register(fastifyCors, {
     origin: '*',
 });
+
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
 
 // Adicionando uma rota
 app.get('/hello', async (request, reply) => {
