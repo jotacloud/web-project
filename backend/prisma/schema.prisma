@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Evento {
+  id                String     @id @default(uuid())
+  titulo            String
+  detalhes          String?
+  slug              String     @unique
+  maxParticipantes  Int?       @map("maximum_attendees")
+  participantes     Participante[]
+
+  @@map("events")
+}
+
+model Participante {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  email       String
+  criadoEm    DateTime @default(now()) @map("created_at")
+  eventoId    String   @map("event_id")
+  evento      Evento    @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  checkIn     CheckIn?
+
+  @@unique([eventoId, email])
+  @@map("attendees")
+}
+
+model CheckIn {
+  id          Int      @id @default(autoincrement())
+  criadoEm    DateTime @default(now()) @map("created_at")
+  participante Participante @relation(fields: [participanteId], references: [id], onDelete: Cascade)
+  participanteId Int      @unique @map("attendee_id")
+
+  @@map("check_ins")
+}
