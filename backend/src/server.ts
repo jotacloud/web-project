@@ -1,8 +1,13 @@
 import fastify from "fastify";
 import fastifyCors from "@fastify/cors";
-import { serializerCompiler, validatorCompiler, jsonSchemaTransform, ZodTypeProvider } from 'fastify-type-provider-zod'
+import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
+
+//Import de rotas
+import { getEvento } from "../src/routes/getEvento";
+
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
+//CORS deve ser ajustado na hora do deploy.
 app.register(fastifyCors, {
     origin: '*',
 });
@@ -10,11 +15,15 @@ app.register(fastifyCors, {
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
-// Adicionando uma rota
+//Rota da sorte
 app.get('/hello', async (request, reply) => {
     return { message: 'Hello, World!' };
 });
 
+//Rotas
+app.register(getEvento)
+
+//Init da api
 app.listen({ port: 5000 }, (err) => {
     if (err) {
         console.error(err);
