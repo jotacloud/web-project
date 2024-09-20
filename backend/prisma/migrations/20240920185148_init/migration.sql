@@ -1,8 +1,8 @@
 -- CreateTable
 CREATE TABLE "events" (
     "id" TEXT NOT NULL,
-    "titulo" TEXT NOT NULL,
-    "detalhes" TEXT,
+    "title" TEXT NOT NULL,
+    "details" TEXT,
     "slug" TEXT NOT NULL,
     "maximum_attendees" INTEGER,
 
@@ -12,7 +12,7 @@ CREATE TABLE "events" (
 -- CreateTable
 CREATE TABLE "attendees" (
     "id" SERIAL NOT NULL,
-    "nome" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "event_id" TEXT NOT NULL,

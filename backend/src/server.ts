@@ -3,7 +3,8 @@ import fastifyCors from "@fastify/cors";
 import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
 
 //Import de rotas
-import { getEvento } from "../src/routes/getEvento";
+import { getEvent } from "../src/routes/getEvento";
+import { createEvent } from "../src/routes/createEvento";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -21,7 +22,8 @@ app.get('/hello', async (request, reply) => {
 });
 
 //Rotas
-app.register(getEvento)
+app.register(getEvent)
+app.register(createEvent)
 
 //Init da api
 app.listen({ port: 5000 }, (err) => {
