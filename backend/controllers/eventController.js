@@ -1,8 +1,8 @@
 const getToken = require("../helpers/getToken");
 const sendError = require("../helpers/errorHelper");
 const getUserByToken = require("../helpers/getUserByToken");
-const prisma = require("../libs/prisma"); // Supondo que o prisma client seja inicializado aqui
-const generateSlug = require('../utils/generateSlug');
+const prisma = require("../libs/prisma");
+const generateSlug = require("../utils/generateSlug");
 
 module.exports = class eventController {
   static async createEvent(req, res) {
@@ -15,7 +15,9 @@ module.exports = class eventController {
       return res.status(422).json({ error: "A descrição é obrigatória" });
     }
     if (!maximumAttendees) {
-      return res.status(422).json({ error: "O número máximo de participantes é obrigatório" });
+      return res
+        .status(422)
+        .json({ error: "O número máximo de participantes é obrigatório" });
     }
 
     try {
@@ -31,7 +33,9 @@ module.exports = class eventController {
       });
 
       if (eventWithSameSlug !== null) {
-        return res.status(400).json({ error: "Outro evento com o mesmo título já existe." });
+        return res
+          .status(400)
+          .json({ error: "Outro evento com o mesmo título já existe." });
       }
 
       // Criar o evento
@@ -41,17 +45,61 @@ module.exports = class eventController {
           details,
           maximumAttendees,
           slug,
-          createdById: user.id, // ID do usuário criador
+          createdById: user.id,
           participants: {
-            connect: { id: user.id }, // Relacionando o criador como participante também
+            connect: { id: user.id },
           },
         },
       });
 
-      return res.status(201).json({ eventId: event.id }); // Retornar apenas o eventId
+      return res.status(201).json({ eventId: event.id, slug: event.slug }); // Retornar apenas o eventId
     } catch (error) {
       console.error("Erro ao criar evento:", error); // Logando o erro no console
-      return res.status(500).json({ error: "Erro ao criar o evento", details: error.message });
+      return res
+        .status(500)
+        .json({ error: "Erro ao criar o evento", details: error.message });
+    }
+  }
+  static async getEvent(req, res) {
+    const { eventId } = req.params;
+    try {
+      const event = await prisma.prisma.event.findUnique({
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          details: true,
+          maximumAttendees: true,
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+        where: {
+          id: eventId,
+        },
+      });
+
+      if (event === null) {
+        return res.status(400).json({ error: "Evento não encontrado." });
+      }
+
+      return res.status(200).json({
+        event: {
+          id: event.id,
+          title: event.title,
+          slug: event.slug,
+          details: event.details,
+          maximumAttendees: event.maximumAttendees,
+          attendeesAmount: event._count.participants,
+        },
+      });
+    } catch (error) {
+      console.error("Erro ao buscar evento:", error);
+      return res
+        .status(500)
+        .json({ error: "Erro ao buscar o evento", details: error.message });
     }
   }
 };
