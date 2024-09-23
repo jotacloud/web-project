@@ -6,9 +6,11 @@ const app = express();
 app.use(express.json());
 
 const userRoutes = require('./routes/userRoutes');
+const eventRoutes = require('./routes/eventRoutes');
 
 //Rotas
 app.use('/users', userRoutes);
+app.use('/events', eventRoutes);
 
 const start = async () => {
 
