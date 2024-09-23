@@ -7,6 +7,7 @@ const eventController = require("../controllers/eventController");
 const verifyToken = require("../middlewares/verifyToken");
 
 router.post("/create", verifyToken, eventController.createEvent);
-router.get("/list/:eventId", eventController.getEvent);
+router.get("/listar/:eventId", eventController.getEvent);
+router.get("/listar/:eventId/participantes", eventController.getEventAttendees);
 
 module.exports = router;

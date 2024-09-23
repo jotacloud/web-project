@@ -102,4 +102,77 @@ module.exports = class eventController {
         .json({ error: "Erro ao buscar o evento", details: error.message });
     }
   }
+  static async getEventAttendees(req, res) {
+    const { eventId } = req.params;
+    const { pageIndex = 0, query } = req.query;
+    try {
+      const [attendees, total] = await Promise.all([
+        prisma.prisma.user.findMany({
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            checkIn: {
+              select: {
+                createdAt: true,
+              },
+            },
+          },
+          where: {
+            participatedEvents: {
+              some: {
+                id: eventId, // Filtra pelos eventos que o usuário participou
+              },
+            },
+            ...(query
+              ? {
+                  name: {
+                    contains: query,
+                  },
+                }
+              : {}),
+          },
+          take: 10,
+          skip: pageIndex * 10,
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+        prisma.prisma.user.count({
+          where: {
+            participatedEvents: {
+              some: {
+                id: eventId, // Filtra pelos eventos que o usuário participou
+              },
+            },
+            ...(query
+              ? {
+                  name: {
+                    contains: query,
+                  },
+                }
+              : {}),
+          },
+        }),
+      ]);
+
+      return res.status(200).json({
+        attendees: attendees.map((attendee) => ({
+          id: attendee.id,
+          name: attendee.name,
+          email: attendee.email,
+          createdAt: attendee.createdAt,
+          checkedInAt: attendee.checkIn?.createdAt ?? null,
+        })),
+        total,
+      });
+    } catch (error) {
+      console.error("Erro ao buscar participantes:", error);
+      return res.status(500).json({
+        error: "Erro ao buscar participantes",
+        details: error.message,
+      });
+    }
+  }
 };
