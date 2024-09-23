@@ -1,3 +1,8 @@
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.svg"
+}
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +12,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Event {
+  id               String   @id @default(uuid())
+  title            String
+  details          String?
+  slug             String   @unique
+  maximumAttendees Int?     @map("maximum_attendees")
+
+  // Relacionamento com os participantes (usuários)
+  participants     User[]   @relation("EventParticipants")
+
+  // Relacionamento com o criador do evento
+  createdBy        User     @relation("CreatedEvents", fields: [createdById], references: [id])
+  createdById      Int
+
+  @@map("events")
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   name      String
@@ -14,60 +36,25 @@ model User {
   password  String
   createdAt DateTime @default(now()) @map("created_at")
 
-  // Relacionamento com os participantes (Attendee)
-  attendees Attendee[] 
+  // Relacionamento com os eventos criados pelo usuário
+  createdEvents    Event[]  @relation("CreatedEvents")
 
-  // Relacionamento opcional para eventos criados pelo usuário
-  createdEvents Event[] @relation("UserCreatedEvents")
+  // Relacionamento com os eventos dos quais o usuário é participante
+  participatedEvents Event[] @relation("EventParticipants")
 
-  @@map("users")
-}
-
-model Event {
-  id               String  @id @default(uuid())
-  title            String
-  details          String?
-  slug             String  @unique
-  maximumAttendees Int?    @map("maximum_attendees")
-
-  // Relacionamento com participantes
-  attendees Attendee[]
-
-  // Relacionamento opcional com o criador do evento (usuário)
-  createdBy   User?    @relation("UserCreatedEvents", fields: [createdById], references: [id])
-  createdById Int?     // Chave estrangeira para o User
-
-  @@map("events")
-}
-
-model Attendee {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String
-  createdAt DateTime @default(now()) @map("created_at")
-  eventId   String   @map("event_id")
-  userId    Int?     // Chave estrangeira para o User
-
-  // Relacionamento com o evento
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  // Relacionamento com o usuário
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   // Relacionamento com o check-in
   checkIn   CheckIn?
 
-  @@unique([eventId, email])
-  @@map("attendees")
+  @@map("users")
 }
 
 model CheckIn {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
+  userId    Int      @unique @map("user_id")
 
-  // Relacionamento com o participante (attendee)
-  attendee   Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
-  attendeeId Int      @unique @map("attendee_id")
+  // Relacionamento com o usuário
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("check_ins")
 }

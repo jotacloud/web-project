@@ -239,7 +239,7 @@ module.exports = class userController {
         }
     
         // Verifica se o e-mail já está em uso por outro usuário
-        const userExists = await prisma.user.findUnique({
+        const userExists = await prisma.prisma.user.findUnique({
             where: {
                 email: email,
             },
