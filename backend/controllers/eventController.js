@@ -45,9 +45,9 @@ module.exports = class eventController {
           details,
           maximumAttendees,
           slug,
-          createdById: user.id, 
+          createdById: user.id,
           participants: {
-            connect: { id: user.id }, 
+            connect: { id: user.id },
           },
         },
       });
@@ -92,7 +92,7 @@ module.exports = class eventController {
           slug: event.slug,
           details: event.details,
           maximumAttendees: event.maximumAttendees,
-          attendeesAmount: event._count.attendees,
+          attendeesAmount: event._count.participants,
         },
       });
     } catch (error) {
