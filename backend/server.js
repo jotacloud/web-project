@@ -1,20 +1,16 @@
 const express = require('express');
 const http = require('http');
-const mongoose = require('./database/connection')
 const app = express();
 
 // Configuração para o retorno de JSON.
 app.use(express.json());
 
-//const rotas = require('./routes/rotas');
+const userRoutes = require('./routes/userRoutes');
 
 //Rotas
-//app.use('/rotas', rotas);
+app.use('/users', userRoutes);
 
 const start = async () => {
-
-    //Inicialização do banco de dados.
-    await mongoose.connection;
 
     //Inicialização do servidor http.
     const server = http.createServer(app);
