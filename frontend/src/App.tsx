@@ -5,6 +5,8 @@ import AuthForm from './components/AuthForm';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoginView, setIsLoginView] = useState(true); // Estado para alternar entre login e cadastro
+
 
   const handleLogin = (email: string, password: string) => {
     console.log("Login com:", email, password);
@@ -17,20 +19,25 @@ function App() {
     console.log("Cadastro com:", email, password);
     // Aqui você pode adicionar a lógica de registro
     // Se o registro for bem-sucedido, atualizar o estado para true
-    setIsAuthenticated(true);
+    setIsLoginView(true);
   };
 
   return (
     <div className="max-w-[1216px] mx-auto py-5 flex flex-col gap-5">
-      {!isAuthenticated ? (
-        <AuthForm onLogin={handleLogin} onRegister={handleRegister} />
-      ) : (
-        <>
-          <Header />
-          <AttendeeList />
-        </>
-      )}
-    </div>
+    {!isAuthenticated ? (
+      <AuthForm
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        isLoginView={isLoginView}
+        setIsLoginView={setIsLoginView} // Adicionar controle da view no AuthForm
+      />
+    ) : (
+      <>
+        <Header />
+        <AttendeeList />
+      </>
+    )}
+  </div>
   );
 }
 
