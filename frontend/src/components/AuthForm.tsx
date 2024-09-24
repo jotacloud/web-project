@@ -1,3 +1,5 @@
+// define as propriedades que o componente de formulário de autenticação deve receber
+
 import { useState, Dispatch, SetStateAction } from 'react';
 
 interface AuthFormProps {
