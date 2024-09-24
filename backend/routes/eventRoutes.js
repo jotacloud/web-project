@@ -10,5 +10,5 @@ router.post("/create", verifyToken, eventController.createEvent);
 router.get("/listar/:eventId", eventController.getEvent);
 router.get("/listar/:eventId/participantes", eventController.getEventAttendees);
 router.post("/adicionar/:eventId/participantes", verifyToken, eventController.registerForEvent);
-
+router.get("/participantes/:userId/checkin", verifyToken, eventController.checkIn)
 module.exports = router;
