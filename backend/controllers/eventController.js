@@ -189,7 +189,7 @@ module.exports = class eventController {
         return res.status(422).json({ error: "Usuário não cadstrado" });
       }
 
-      console.log(user)
+      console.log(user);
 
       const existingRegistration = await prisma.prisma.event.findFirst({
         where: {
@@ -253,5 +253,26 @@ module.exports = class eventController {
         details: error.message,
       });
     }
+  }
+  static async checkIn(req, res) {
+    const { userId } = req.params;
+
+    const userCheckIn = await prisma.prisma.checkIn.findUnique({
+      where: {
+        userId:parseInt(userId,10),
+      },
+    });
+
+    if(userCheckIn !== null) {
+      return res.status(422).json({ error: "Usuário já fez check-in" }); 
+    }
+
+    await prisma.prisma.checkIn.create({
+      data:{
+        userId: parseInt(userId,10),
+      }
+    })
+
+    return res.status(201).send()
   }
 };
