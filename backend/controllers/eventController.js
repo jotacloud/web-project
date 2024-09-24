@@ -1,6 +1,7 @@
 const getToken = require("../helpers/getToken");
 const sendError = require("../helpers/errorHelper");
 const getUserByToken = require("../helpers/getUserByToken");
+const isValidEmail = require("../helpers/isValidEmail");
 const prisma = require("../libs/prisma");
 const generateSlug = require("../utils/generateSlug");
 
@@ -122,7 +123,7 @@ module.exports = class eventController {
           where: {
             participatedEvents: {
               some: {
-                id: eventId, // Filtra pelos eventos que o usuário participou
+                id: eventId,
               },
             },
             ...(query
@@ -171,6 +172,84 @@ module.exports = class eventController {
       console.error("Erro ao buscar participantes:", error);
       return res.status(500).json({
         error: "Erro ao buscar participantes",
+        details: error.message,
+      });
+    }
+  }
+  static async registerForEvent(req, res) {
+    const { eventId } = req.params;
+    const { name, email } = req.body;
+
+    try {
+      const user = await prisma.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        return res.status(422).json({ error: "Usuário não cadstrado" });
+      }
+
+      console.log(user)
+
+      const existingRegistration = await prisma.prisma.event.findFirst({
+        where: {
+          id: eventId,
+          participants: {
+            some: {
+              id: user.id,
+            },
+          },
+        },
+      });
+
+      if (existingRegistration) {
+        return res.status(400).json({
+          error: "Este e-mail já está registrado para este evento.",
+        });
+      }
+
+      const [event, totalAttendees] = await Promise.all([
+        prisma.prisma.event.findUnique({
+          where: { id: eventId },
+        }),
+        prisma.prisma.user.count({
+          where: {
+            participatedEvents: {
+              some: {
+                id: eventId,
+              },
+            },
+          },
+        }),
+      ]);
+
+      if (!event) {
+        return res.status(404).json({ error: "Evento não encontrado." });
+      }
+
+      if (event.maximumAttendees && totalAttendees >= event.maximumAttendees) {
+        return res.status(400).json({
+          error:
+            "O número máximo de participantes para este evento foi atingido.",
+        });
+      }
+
+      await prisma.prisma.event.update({
+        where: { id: eventId },
+        data: {
+          participants: {
+            connect: { id: user.id },
+          },
+        },
+      });
+
+      console.log("Evento atualizado:", updateEvent);
+
+      return res.status(201).json({ attendeeId: user.id });
+    } catch (error) {
+      console.error("Erro ao cadastrar participante:", error);
+      return res.status(500).json({
+        error: "Erro ao cadastrar participante.",
         details: error.message,
       });
     }
