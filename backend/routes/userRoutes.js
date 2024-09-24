@@ -15,6 +15,8 @@ router.post("/login", userController.login);
 // Rota para verificar se um usuário está autenticado.
 router.get("/checkUser", userController.checkUser);
 
+router.get("/todos", userController.listUsers);
+
 // Rota para retornar o usuario pelo id
 router.get("/:id", userController.getUserById);
 

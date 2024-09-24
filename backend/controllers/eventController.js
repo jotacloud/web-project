@@ -61,6 +61,44 @@ module.exports = class eventController {
         .json({ error: "Erro ao criar o evento", details: error.message });
     }
   }
+  static async listEvents(req, res) {
+    try {
+      const events = await prisma.prisma.event.findMany({
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          details: true,
+          maximumAttendees: true,
+          _count: {
+            select: {
+              participants: true,
+            },
+          },
+        },
+      });
+
+      if (events.length === 0) {
+        return res.status(404).json({ error: "Nenhum evento encontrado." });
+      }
+
+      const formattedEvents = events.map((event) => ({
+        id: event.id,
+        title: event.title,
+        slug: event.slug,
+        details: event.details,
+        maximumAttendees: event.maximumAttendees,
+        attendeesAmount: event._count.participants,
+      }));
+
+      return res.status(200).json({ events: formattedEvents });
+    } catch (error) {
+      console.error("Erro ao listar eventos:", error);
+      return res
+        .status(500)
+        .json({ error: "Erro ao listar os eventos", details: error.message });
+    }
+  }
   static async getEvent(req, res) {
     const { eventId } = req.params;
     try {
@@ -259,20 +297,20 @@ module.exports = class eventController {
 
     const userCheckIn = await prisma.prisma.checkIn.findUnique({
       where: {
-        userId:parseInt(userId,10),
+        userId: parseInt(userId, 10),
       },
     });
 
-    if(userCheckIn !== null) {
-      return res.status(422).json({ error: "Usuário já fez check-in" }); 
+    if (userCheckIn !== null) {
+      return res.status(422).json({ error: "Usuário já fez check-in" });
     }
 
     await prisma.prisma.checkIn.create({
-      data:{
-        userId: parseInt(userId,10),
-      }
-    })
+      data: {
+        userId: parseInt(userId, 10),
+      },
+    });
 
-    return res.status(201).send()
+    return res.status(201).send();
   }
 };
