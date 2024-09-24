@@ -186,7 +186,7 @@ module.exports = class userController {
   }
 
   static async getUserById(req, res) {
-    const id = req.params.id;
+    const id = parseInt(req.params.id);
 
     // Busca o usuário pelo ID usando Prisma
     const user = await prisma.prisma.user.findUnique({
@@ -301,6 +301,61 @@ module.exports = class userController {
         errorMessages.notUpdateUser.statusCode,
         errorMessages.notUpdateUser.message
       );
+    }
+  }
+
+  static async listUsers(req, res) {
+    try {
+      const users = await prisma.prisma.user.findMany({
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+          // Relacionamentos
+          createdEvents: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
+          participatedEvents: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+            },
+          },
+          checkIn: {
+            select: {
+              id: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      if (users.length === 0) {
+        return res.status(404).json({ error: "Nenhum usuário encontrado." });
+      }
+
+      const formattedUsers = users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        createdEvents: user.createdEvents,
+        participatedEvents: user.participatedEvents,
+        checkIn: user.checkIn,
+      }));
+
+      return res.status(200).json({ users: formattedUsers });
+    } catch (error) {
+      console.error("Erro ao listar usuários:", error);
+      return res
+        .status(500)
+        .json({ error: "Erro ao listar os usuários", details: error.message });
     }
   }
 };
